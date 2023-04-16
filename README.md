@@ -57,7 +57,7 @@ The project use tree structure to store the data. Please see `cache.json` file t
 }
 ```
 
-Interaction
+### Interaction
 After executing the python file, users can interact with the application using command line. <br>
 **Step 1.** The application displays hiphop introduction and different time periods' introduction. <br>
 **Step 2.** Users answer the question: Are you interested in any specific time period? Please enter 1970s, 1980s, 1990s or 2000s <br>
