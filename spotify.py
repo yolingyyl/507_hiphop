@@ -14,8 +14,6 @@ from bs4 import BeautifulSoup
 import re
 import webbrowser
 
-from tkinter import *
-import tkinter as tk
 
 #############
 ### class ###
@@ -82,13 +80,35 @@ sp = spotipy.Spotify(client_credentials_manager=credentials_manager)
 
 # spotify API function
 def get_playlist(year):
+    '''
+    this function gets playlists based on year keywords using Spotify API
+
+    Param
+    -----
+    year(str): the year that we want to search playlists from
+
+    Return
+    ------
+    list: the response of the API, including the playlist's name, owner, url, etc.
+    '''
     query = f'hiphop {year}s'
-    results = sp.search(q=query, type='playlist', market = 'US', limit=10)
+    results = sp.search(q=query, type='playlist', market = 'US', limit=20)
     playlist = results['playlists']['items']
     return playlist
 
 def get_track(playlist_id):
-    results = sp.playlist_items(playlist_id, fields=None, limit=10, offset=0, market="US", additional_types=['track'])
+    '''
+    this function gets the tracks based on specific playlist ID
+
+    Param
+    -----
+    playlist_id (str): the playlist id 
+
+    Return
+    ------
+    list: the response of the API, including track's name, author, url, etc.
+    '''
+    results = sp.playlist_items(playlist_id, fields=None, limit=20, offset=0, market="US", additional_types=['track'])
     playlist_item = results['items']
     return playlist_item
 
@@ -101,6 +121,17 @@ def get_track(playlist_id):
 CACHE_FILENAME = "cache.json"
 
 def open_cache():
+    '''
+    this function opens the cache file: CACHE_FILENAME
+
+    Param
+    -----
+    none
+
+    Return
+    ------
+    open cache file and load content 
+    '''
     try:
         cache_file = open(CACHE_FILENAME, 'r')
         cache_contents = cache_file.read()
@@ -111,6 +142,17 @@ def open_cache():
     return cache_dict
 
 def save_cache(cache_dict):
+    '''
+    this function saves the cache_dict to the cache file: CACHE_FILENAME
+
+    Param
+    -----
+    cache_dict (dict): the dictionary that stores the content that needed to be saved 
+
+    Return
+    ------
+    write the content from cache_dict into CACHE_FILENAME
+    '''
     dumped_json_cache = json.dumps(cache_dict)
     fw = open(CACHE_FILENAME,"w")
     fw.write(dumped_json_cache)
@@ -120,6 +162,18 @@ spotify_cache = open_cache()
 
 # spotify tree and cache
 def track_tree(year, id):
+    '''
+    this function retrived track information with cache, stores the track info into tree structure as well as save the new content to cache file.
+
+    Param
+    -----
+    year (str): the year that is searched for playlists
+    id (str): the playlist ID
+
+    Return
+    ------
+    dict: the tracks' info under tree structure
+    '''
     track_dict = {}
     if year in spotify_cache:
         json = get_track(id)
@@ -142,6 +196,17 @@ def track_tree(year, id):
 
 
 def playlist_tree(year):
+    '''
+    this function retrived playlist information with cache, stores the playlist info into tree structure as well as save the new content to cache file.
+
+    Param
+    -----
+    year (str): the year that is searched for playlists
+
+    Return
+    ------
+    dict: the playlists' info under tree structure
+    '''
     playlist_dict = {}
     if year in spotify_cache:
         for a in get_playlist(year):
@@ -165,6 +230,18 @@ def playlist_tree(year):
 
 
 def year_tree(year, dict):
+    '''
+    this function retrived year information with cache, stores the year info into tree structure as well as save the new content to cache file.
+
+    Param
+    -----
+    year (str): the year that is searched for playlists
+    dict (dict): the tree dictionary that is used to store all Spotify's output
+
+    Return
+    ------
+    dict: the dictionary under tree structure
+    '''
     if year in spotify_cache:
         dict[year] = spotify_cache[year]
     else:
@@ -173,8 +250,6 @@ def year_tree(year, dict):
         save_cache(spotify_cache)
     return dict
 
-spotify_dict = {}
-year_tree('1990', spotify_dict)
 
 
 
@@ -183,11 +258,23 @@ year_tree('1990', spotify_dict)
 ########################
 
 def scrape_wiki():
+    '''
+    this function scrapes wikipedia's hiphop culture page, and get the first 2 paragraphs and the time period introduction paragraphs.
+
+    Param
+    -----
+    none
+
+    Return
+    ------
+    time_intro (str): the paragraphs of the time period introduction
+    hiphop_intro_text (str): the first 2 paragraphs
+    '''
     url = 'https://en.wikipedia.org/wiki/Hip_hop_(culture)'
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
     year_h3 = soup.find_all('h3', string=re.compile(r'\d{4}s'))
-# save time-culture introduction to the dictionary
+    # save time-culture introduction to the dictionary
     time_intro = {}
     for year in year_h3:
         p_tag = year.find_next_sibling('p') # find only the first paragraph
@@ -242,6 +329,7 @@ def main():
             ans_track = input('\n\nEnter the track\'s index number to see more, or enter “quit” to leave the application: ')
             try:
                 if ans_track.isdigit() is True:
+                    print('loading the Spotify\'s webpage...')
                     url = track_index[int(ans_track)]
                     webbrowser.open_new_tab(url)
                 elif ans_track.lower() == 'quit':
